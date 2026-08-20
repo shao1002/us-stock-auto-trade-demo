@@ -1,0 +1,66 @@
+name: 盤中自動交易示範
+
+# 兩種啟動方式:
+#   1. 手動:Actions 分頁 -> 選這個 workflow -> Run workflow(可自訂參數)
+#   2. 排程:美股交易時段內每小時自動啟動一次,每次跑 55 分鐘
+on:
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: '執行幾分鐘'
+        required: false
+        default: '55'
+      symbol:
+        description: '股票代號'
+        required: false
+        default: 'TSLA'
+      qty:
+        description: '每筆股數'
+        required: false
+        default: '50'
+  schedule:
+    # cron 是 UTC 時間。美股夏令 13:30-20:00 UTC(台北 21:30-04:00)
+    - cron: '35 13 * * 1-5'
+    - cron: '30 14 * * 1-5'
+    - cron: '30 15 * * 1-5'
+    - cron: '30 16 * * 1-5'
+    - cron: '30 17 * * 1-5'
+    - cron: '30 18 * * 1-5'
+    - cron: '30 19 * * 1-5'
+
+# 同一時間只允許一個執行中,避免排程與手動觸發重疊而重複下單
+concurrency:
+  group: live-trade
+  cancel-in-progress: false
+
+jobs:
+  trade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - name: 取得程式碼
+        uses: actions/checkout@v4
+
+      - name: 安裝 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 安裝套件
+        run: pip install -r requirements.txt
+
+      - name: 執行交易程式
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PYTHONUNBUFFERED: '1'
+          PYTHONIOENCODING: 'utf-8'
+        run: |
+          python live_demo.py \
+            --minutes ${{ github.event.inputs.minutes || '55' }} \
+            --symbol  ${{ github.event.inputs.symbol  || 'TSLA' }} \
+            --qty     ${{ github.event.inputs.qty     || '50' }}

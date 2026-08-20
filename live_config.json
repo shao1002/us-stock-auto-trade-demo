@@ -1,0 +1,12 @@
+{
+  "symbol": "TSLA",
+  "qty": 50,
+  "fast_period": 5,
+  "slow_period": 15,
+  "poll_seconds": 5,
+  "cross_margin_pct": 0.02,
+  "min_gap_seconds": 180,
+  "run_minutes": 55,
+  "max_trades": 15,
+  "notify_every_poll": false
+}

@@ -1,0 +1,13 @@
+{
+  "symbol": "AAPL",
+  "condition": {
+    "type": "below_sma",
+    "period": 5,
+    "value": null
+  },
+  "action": {
+    "side": "buy",
+    "qty": 1
+  },
+  "notify_when_no_signal": true
+}
